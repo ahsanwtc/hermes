@@ -23,6 +23,7 @@ import pro.jsan.hermes.ui.viewmodel.RulesViewModel
 @Composable
 fun RuleEditorScreen(ruleId: Int, onSaved: () -> Unit) {
     val vm: RulesViewModel = hiltViewModel()
+    val context = LocalContext.current
     val existing = if (ruleId != -1) vm.rules.collectAsState().value.find { it.id == ruleId } else null
 
     var localPath by remember { mutableStateOf(existing?.localPath ?: "") }

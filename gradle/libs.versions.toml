@@ -46,7 +46,8 @@ ktor-client-android = { group = "io.ktor", name = "ktor-client-android", version
 ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
-documentfile = { group = "androidx.documentfile", name = "documentfile", version = "1.0.1" }
+docfile = { group = "androidx.documentfile", name = "documentfile", version = "1.0.1" }
+goog-material = { group = "com.google.android.material", name = "material", version = "1.12.0" }
 navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation-compose" }
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }
