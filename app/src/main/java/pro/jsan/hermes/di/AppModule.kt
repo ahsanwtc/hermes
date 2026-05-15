@@ -11,6 +11,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
+import pro.jsan.hermes.data.FilenApiClient
 import pro.jsan.hermes.data.SettingsRepository
 import pro.jsan.hermes.data.db.AppDatabase
 import javax.inject.Singleton
@@ -36,4 +37,8 @@ object AppModule {
     fun provideHttpClient(): HttpClient = HttpClient(Android) {
         install(ContentNegotiation) { json() }
     }
+
+    @Provides @Singleton
+    fun provideFilenApiClient(client: HttpClient, settings: SettingsRepository) =
+        FilenApiClient(client, settings)
 }
