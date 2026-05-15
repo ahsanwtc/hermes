@@ -23,15 +23,29 @@ class SettingsViewModel @Inject constructor(
     var twoFactorCode by mutableStateOf("")
     var loginError by mutableStateOf("")
 
+    var isLoggedIn by mutableStateOf(settings.isLoggedIn)
+        private set
     val uploadOnMobileData = settings.uploadOnMobileData
 
     fun login() = viewModelScope.launch {
         loginError = ""
         runCatching { api.login(email, password, twoFactorCode.ifBlank { "XXXXXX" }) }
+            .onSuccess { isLoggedIn = true }
             .onFailure {
                 Log.e("Hermes", "Login failed", it)
                 loginError = it.message ?: "Login failed"
             }
+    }
+
+    fun logout() {
+        settings.apiKey = ""
+        settings.masterKey = ""
+        settings.email = ""
+        email = ""
+        password = ""
+        twoFactorCode = ""
+        loginError = ""
+        isLoggedIn = false
     }
 
     fun setUploadOnMobileData(value: Boolean) = viewModelScope.launch {

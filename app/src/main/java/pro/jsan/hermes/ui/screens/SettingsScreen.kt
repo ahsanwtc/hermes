@@ -29,14 +29,28 @@ fun SettingsScreen() {
             Text("ACCOUNT", color = OnSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.SemiBold,
                 letterSpacing = androidx.compose.ui.unit.TextUnit(1.5f, androidx.compose.ui.unit.TextUnitType.Sp))
 
-            RecessedField(vm.email, { vm.email = it }, "Email")
-            RecessedField(vm.password, { vm.password = it }, "Password", visualTransformation = PasswordVisualTransformation())
-            RecessedField(vm.twoFactorCode, { vm.twoFactorCode = it }, "2FA Code (if enabled)")
-
-            GoldButton("Sign In", Modifier.fillMaxWidth()) { vm.login() }
-
-            if (vm.loginError.isNotEmpty()) {
-                Text(vm.loginError, color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
+            if (vm.isLoggedIn) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("Signed in", color = Primary, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        Text(vm.email, color = OnSurfaceVariant, fontSize = 13.sp)
+                    }
+                    OutlinedButton(onClick = { vm.logout() }) {
+                        Text("Sign Out", color = Primary)
+                    }
+                }
+            } else {
+                RecessedField(vm.email, { vm.email = it }, "Email")
+                RecessedField(vm.password, { vm.password = it }, "Password", visualTransformation = PasswordVisualTransformation())
+                RecessedField(vm.twoFactorCode, { vm.twoFactorCode = it }, "2FA Code (if enabled)")
+                GoldButton("Sign In", Modifier.fillMaxWidth()) { vm.login() }
+                if (vm.loginError.isNotEmpty()) {
+                    Text(vm.loginError, color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
+                }
             }
 
             Spacer(Modifier.height(8.dp))
