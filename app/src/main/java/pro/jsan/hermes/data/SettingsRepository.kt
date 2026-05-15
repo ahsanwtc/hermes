@@ -25,6 +25,16 @@ class SettingsRepository(private val context: Context) {
         get() = prefs.getString("api_key", "") ?: ""
         set(value) = prefs.edit().putString("api_key", value).apply()
 
+    var masterKey: String
+        get() = prefs.getString("master_key", "") ?: ""
+        set(value) = prefs.edit().putString("master_key", value).apply()
+
+    var email: String
+        get() = prefs.getString("email", "") ?: ""
+        set(value) = prefs.edit().putString("email", value).apply()
+
+    val isLoggedIn: Boolean get() = apiKey.isNotEmpty() && masterKey.isNotEmpty()
+
     val uploadOnMobileData: Flow<Boolean> = context.dataStore.data.map {
         it[booleanPreferencesKey("upload_mobile_data")] ?: false
     }

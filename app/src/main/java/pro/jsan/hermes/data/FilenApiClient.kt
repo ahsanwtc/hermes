@@ -31,6 +31,47 @@ class FilenApiClient @Inject constructor(
 
     private fun authHeader() = "Bearer ${settings.apiKey}"
 
+    /**
+     * Logs in with email + raw password.
+     * Derives master key and login password via PBKDF2, fetches API key.
+     * Stores apiKey, masterKey, and email in SettingsRepository.
+     */
+    suspend fun login(email: String, rawPassword: String) {
+        // 1. Fetch salt
+        val authInfo = client.post("$GATEWAY/v3/auth/info") {
+            contentType(ContentType.Application.Json)
+            setBody(buildJsonObject { put("email", email) }.toString())
+        }.body<JsonObject>()
+        val salt = authInfo["data"]!!.jsonObject["salt"]!!.jsonPrimitive.content
+
+        // 2. Derive 512-bit key via PBKDF2-SHA512
+        val spec = javax.crypto.spec.PBEKeySpec(rawPassword.toCharArray(), salt.toByteArray(), 200_000, 512)
+        val derived = javax.crypto.SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512")
+            .generateSecret(spec).encoded
+        val derivedHex = derived.joinToString("") { "%02x".format(it) }
+
+        val masterKey = derivedHex.substring(0, derivedHex.length / 2)
+        var loginPassword = derivedHex.substring(derivedHex.length / 2)
+        loginPassword = java.security.MessageDigest.getInstance("SHA-512")
+            .digest(loginPassword.toByteArray()).joinToString("") { "%02x".format(it) }
+
+        // 3. Login
+        val loginRes = client.post("$GATEWAY/v3/login") {
+            contentType(ContentType.Application.Json)
+            setBody(buildJsonObject {
+                put("email", email)
+                put("password", loginPassword)
+                put("twoFactorCode", "XXXXXX")
+                put("authVersion", 2)
+            }.toString())
+        }.body<JsonObject>()
+        val apiKey = loginRes["data"]!!.jsonObject["apiKey"]!!.jsonPrimitive.content
+
+        settings.apiKey = apiKey
+        settings.masterKey = masterKey
+        settings.email = email
+    }
+
     /** Returns the UUID of the user's root folder */
     suspend fun getBaseFolder(): String {
         val res = client.get("$GATEWAY/v3/user/baseFolder") {
@@ -75,7 +116,8 @@ class FilenApiClient @Inject constructor(
      * Resolves or creates the full cloud path (e.g. "/Phone/Camera"),
      * returning the UUID of the leaf directory.
      */
-    suspend fun resolveCloudPath(path: String, masterKey: String): String {
+    suspend fun resolveCloudPath(path: String): String {
+        val masterKey = settings.masterKey
         var currentUuid = getBaseFolder()
         val segments = path.trim('/').split('/').filter { it.isNotEmpty() }
         for (segment in segments) {
@@ -128,9 +170,9 @@ class FilenApiClient @Inject constructor(
         parentUuid: String,
         bytes: ByteArray,
         mimeType: String,
-        lastModified: Long,
-        masterKey: String
+        lastModified: Long
     ): String {
+        val masterKey = settings.masterKey
         val fileUuid = UUID.randomUUID().toString()
         val fileKey = FilenCrypto.generateFileKey()
         val uploadKey = (1..32).map { ('a'..'z').random() }.joinToString("")
