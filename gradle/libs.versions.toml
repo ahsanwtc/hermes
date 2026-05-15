@@ -45,7 +45,8 @@ security-crypto = { group = "androidx.security", name = "security-crypto", versi
 ktor-client-android = { group = "io.ktor", name = "ktor-client-android", version.ref = "ktor" }
 ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
-material3-android = { group = "com.google.android.material", name = "material", version = "1.12.0" }
+compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+android-material = { group = "com.google.android.material", name = "material", version = "1.12.0" }
 navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation-compose" }
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }

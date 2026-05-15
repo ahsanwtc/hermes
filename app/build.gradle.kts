@@ -69,7 +69,8 @@ dependencies {
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
 
-    implementation(libs.material3.android)
+    implementation(libs.compose.material.icons.extended)
+    implementation(libs.android.material)
 
     // Navigation
     implementation(libs.navigation.compose)
