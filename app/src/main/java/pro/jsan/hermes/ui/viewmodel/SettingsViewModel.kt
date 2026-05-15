@@ -1,5 +1,6 @@
 package pro.jsan.hermes.ui.viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -19,14 +20,18 @@ class SettingsViewModel @Inject constructor(
 
     var email by mutableStateOf(settings.email)
     var password by mutableStateOf("")
+    var twoFactorCode by mutableStateOf("")
     var loginError by mutableStateOf("")
 
     val uploadOnMobileData = settings.uploadOnMobileData
 
     fun login() = viewModelScope.launch {
         loginError = ""
-        runCatching { api.login(email, password) }
-            .onFailure { loginError = it.message ?: "Login failed" }
+        runCatching { api.login(email, password, twoFactorCode.ifBlank { "XXXXXX" }) }
+            .onFailure {
+                Log.e("Hermes", "Login failed", it)
+                loginError = it.message ?: "Login failed"
+            }
     }
 
     fun setUploadOnMobileData(value: Boolean) = viewModelScope.launch {

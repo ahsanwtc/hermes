@@ -36,12 +36,15 @@ class FilenApiClient @Inject constructor(
      * Derives master key and login password via PBKDF2, fetches API key.
      * Stores apiKey, masterKey, and email in SettingsRepository.
      */
-    suspend fun login(email: String, rawPassword: String) {
+    suspend fun login(email: String, rawPassword: String, twoFactorCode: String = "XXXXXX") {
         // 1. Fetch salt
         val authInfo = client.post("$GATEWAY/v3/auth/info") {
             contentType(ContentType.Application.Json)
             setBody(buildJsonObject { put("email", email) }.toString())
         }.body<JsonObject>()
+        check(authInfo["status"]?.jsonPrimitive?.booleanOrNull == true) {
+            authInfo["message"]?.jsonPrimitive?.contentOrNull ?: "auth/info failed"
+        }
         val salt = authInfo["data"]!!.jsonObject["salt"]!!.jsonPrimitive.content
 
         // 2. Derive 512-bit key via PBKDF2-SHA512
@@ -61,10 +64,13 @@ class FilenApiClient @Inject constructor(
             setBody(buildJsonObject {
                 put("email", email)
                 put("password", loginPassword)
-                put("twoFactorCode", "XXXXXX")
+                put("twoFactorCode", twoFactorCode)
                 put("authVersion", 2)
             }.toString())
         }.body<JsonObject>()
+        check(loginRes["status"]?.jsonPrimitive?.booleanOrNull == true) {
+            loginRes["message"]?.jsonPrimitive?.contentOrNull ?: "Login failed"
+        }
         val apiKey = loginRes["data"]!!.jsonObject["apiKey"]!!.jsonPrimitive.content
 
         settings.apiKey = apiKey

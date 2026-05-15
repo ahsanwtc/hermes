@@ -31,6 +31,7 @@ fun SettingsScreen() {
 
             RecessedField(vm.email, { vm.email = it }, "Email")
             RecessedField(vm.password, { vm.password = it }, "Password", visualTransformation = PasswordVisualTransformation())
+            RecessedField(vm.twoFactorCode, { vm.twoFactorCode = it }, "2FA Code (if enabled)")
 
             GoldButton("Sign In", Modifier.fillMaxWidth()) { vm.login() }
 
