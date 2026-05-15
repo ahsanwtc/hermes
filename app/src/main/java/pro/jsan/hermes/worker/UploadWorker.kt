@@ -37,7 +37,8 @@ class UploadWorker @AssistedInject constructor(
         val bytes = ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() }
             ?: return Result.retry()
 
-        val name = uri.lastPathSegment ?: "file"
+        val name = androidx.documentfile.provider.DocumentFile.fromSingleUri(ctx, uri)
+            ?.name ?: uri.lastPathSegment ?: "file"
         val mimeType = MimeTypeMap.getSingleton()
             .getMimeTypeFromExtension(name.substringAfterLast('.', ""))
             ?: "application/octet-stream"

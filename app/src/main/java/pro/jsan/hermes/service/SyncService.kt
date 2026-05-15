@@ -4,12 +4,10 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
-import android.database.ContentObserver
 import android.net.Uri
-import android.os.Handler
-import android.os.Looper
-import android.provider.MediaStore
+import android.os.FileObserver
 import androidx.core.app.NotificationCompat
+import androidx.documentfile.provider.DocumentFile
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
@@ -27,76 +25,66 @@ class SyncService : Service() {
     @Inject lateinit var syncedFileDao: SyncedFileDao
     @Inject lateinit var settings: SettingsRepository
 
-    private val observers = mutableMapOf<Int, ContentObserver>()
+    private val observers = mutableListOf<FileObserver>()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForeground(NOTIF_ID, buildNotification())
         scope.launch {
             syncRuleDao.getEnabled().forEach { rule ->
-                registerObserver(rule)
+                watchFolder(rule)
                 catchUpScan(rule)
             }
         }
         return START_STICKY
     }
 
-    private fun registerObserver(rule: SyncRule) {
-        val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
-            override fun onChange(selfChange: Boolean, uri: Uri?) {
-                uri?.let { scope.launch { handleNewFile(it, rule) } }
-            }
-        }
-        contentResolver.registerContentObserver(
-            MediaStore.Files.getContentUri("external"), true, observer
-        )
-        observers[rule.id] = observer
-    }
+    private suspend fun watchFolder(rule: SyncRule) {
+        val treeUri = Uri.parse(rule.localPath)
+        val dir = DocumentFile.fromTreeUri(this, treeUri) ?: return
+        // Resolve real filesystem path for FileObserver
+        val path = getRealPath(treeUri) ?: return
 
-    private suspend fun catchUpScan(rule: SyncRule) {
-        val projection = arrayOf(
-            MediaStore.Files.FileColumns._ID,
-            MediaStore.Files.FileColumns.DATE_MODIFIED,
-            MediaStore.Files.FileColumns.RELATIVE_PATH
-        )
-        val cursor = contentResolver.query(
-            MediaStore.Files.getContentUri("external"),
-            projection,
-            "${MediaStore.Files.FileColumns.RELATIVE_PATH} LIKE ?",
-            arrayOf("${rule.localPath}%"),
-            null
-        ) ?: return
-
-        cursor.use {
-            val idCol = it.getColumnIndexOrThrow(MediaStore.Files.FileColumns._ID)
-            val modCol = it.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATE_MODIFIED)
-            while (it.moveToNext()) {
-                val id = it.getLong(idCol)
-                val modifiedAt = it.getLong(modCol) * 1000
-                val uri = MediaStore.Files.getContentUri("external", id)
-                if (syncedFileDao.find(uri.toString(), modifiedAt) == null) {
-                    enqueueUpload(this, uri, rule.id, modifiedAt, rule.cloudPath, isWifiOnly())
+        val observer = object : FileObserver(path, CREATE or CLOSE_WRITE) {
+            override fun onEvent(event: Int, fileName: String?) {
+                if (fileName == null || fileName.startsWith(".")) return
+                scope.launch {
+                    // Find the DocumentFile for this new file
+                    val file = dir.findFile(fileName) ?: return@launch
+                    val modifiedAt = file.lastModified()
+                    if (syncedFileDao.find(file.uri.toString(), modifiedAt) == null) {
+                        enqueueUpload(this@SyncService, file.uri, rule.id, modifiedAt, rule.cloudPath, isWifiOnly())
+                    }
                 }
             }
         }
+        observer.startWatching()
+        observers.add(observer)
     }
 
-    private suspend fun handleNewFile(uri: Uri, rule: SyncRule) {
-        val cursor = contentResolver.query(
-            uri,
-            arrayOf(MediaStore.Files.FileColumns.DATE_MODIFIED),
-            null, null, null
-        ) ?: return
-        val modifiedAt = cursor.use {
-            if (it.moveToFirst()) it.getLong(0) * 1000 else return
+    private suspend fun catchUpScan(rule: SyncRule) {
+        val treeUri = Uri.parse(rule.localPath)
+        val dir = DocumentFile.fromTreeUri(this, treeUri) ?: return
+        dir.listFiles().forEach { file ->
+            if (!file.isFile) return@forEach
+            val modifiedAt = file.lastModified()
+            if (syncedFileDao.find(file.uri.toString(), modifiedAt) == null) {
+                enqueueUpload(this, file.uri, rule.id, modifiedAt, rule.cloudPath, isWifiOnly())
+            }
         }
-        enqueueUpload(this, uri, rule.id, modifiedAt, rule.cloudPath, isWifiOnly())
+    }
+
+    /** Resolves a SAF tree URI to a real filesystem path for FileObserver */
+    private fun getRealPath(treeUri: Uri): String? {
+        val docId = androidx.documentfile.provider.DocumentFile.fromTreeUri(this, treeUri)
+            ?.uri?.lastPathSegment?.substringAfter(':') ?: return null
+        return "${android.os.Environment.getExternalStorageDirectory().absolutePath}/$docId"
     }
 
     private suspend fun isWifiOnly() = !settings.uploadOnMobileData.first()
 
     override fun onDestroy() {
-        observers.values.forEach { contentResolver.unregisterContentObserver(it) }
+        observers.forEach { it.stopWatching() }
         scope.cancel()
     }
 

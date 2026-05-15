@@ -33,7 +33,10 @@ fun RuleEditorScreen(ruleId: Int, onSaved: () -> Unit) {
     val folderPicker = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             result.data?.data?.let { uri ->
-                localPath = uri.lastPathSegment?.substringAfter(':') ?: uri.toString()
+                context.contentResolver.takePersistableUriPermission(
+                    uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+                localPath = uri.toString()
             }
         }
     }
@@ -48,7 +51,10 @@ fun RuleEditorScreen(ruleId: Int, onSaved: () -> Unit) {
 
             Text("Local Folder", color = OnSurfaceVariant, fontSize = 12.sp)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                RecessedField(localPath, { localPath = it }, "e.g. DCIM/Camera", Modifier.weight(1f))
+                val displayPath = if (localPath.startsWith("content://"))
+                    android.net.Uri.parse(localPath).lastPathSegment?.substringAfter(':') ?: localPath
+                else localPath
+                RecessedField(displayPath, { localPath = it }, "e.g. DCIM/Camera", Modifier.weight(1f))
                 OutlinedButton(onClick = {
                     folderPicker.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE))
                 }) { Text("Browse", color = Primary) }

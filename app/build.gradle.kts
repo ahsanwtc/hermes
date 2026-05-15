@@ -70,6 +70,7 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.json)
 
     implementation(libs.compose.material.icons.extended)
+    implementation(libs.documentfile)
     implementation(libs.android.material)
 
     // Navigation
