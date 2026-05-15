@@ -1,5 +1,7 @@
 package pro.jsan.hermes.ui.screens
 
+import android.app.ActivityManager
+import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -20,10 +22,18 @@ import pro.jsan.hermes.service.SyncService
 import pro.jsan.hermes.ui.components.GoldButton
 import pro.jsan.hermes.ui.theme.*
 
+@Suppress("DEPRECATION")
+private fun isSyncServiceRunning(context: Context): Boolean {
+    val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+    return am.getRunningServices(Int.MAX_VALUE).any {
+        it.service.className == SyncService::class.java.name
+    }
+}
+
 @Composable
 fun HomeScreen(onNavigateRules: () -> Unit, onNavigateLog: () -> Unit, onNavigateSettings: () -> Unit) {
     val context = LocalContext.current
-    var serviceRunning by remember { mutableStateOf(false) }
+    var serviceRunning by remember { mutableStateOf(isSyncServiceRunning(context)) }
 
     Scaffold(
         containerColor = Background,
