@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -51,7 +53,10 @@ fun HomeScreen() {
         // Header
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("HERMES", fontSize = 28.sp, fontWeight = FontWeight.Black, color = OnSurface, letterSpacing = 2.sp)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(Icons.Default.Bolt, null, tint = Primary, modifier = Modifier.size(28.dp))
+                    Text("HERMES", fontSize = 28.sp, fontWeight = FontWeight.Black, color = OnSurface, letterSpacing = 2.sp)
+                }
                 Surface(color = if (serviceRunning) Primary.copy(alpha = 0.15f) else SurfaceContainerHigh, shape = RoundedCornerShape(9999.dp)) {
                     Text(
                         if (serviceRunning) "● Watching" else "○ Stopped",
