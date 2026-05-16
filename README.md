@@ -5,6 +5,7 @@ Android app that automatically backs up local folders to [Filen](https://filen.i
 ## Features
 
 - **Automatic sync** — watches folders for new files and uploads them in the background
+- **URL downloader** — paste a direct file URL to download it into any folder (synced automatically if the folder is watched)
 - **End-to-end encrypted** — files are encrypted on-device before upload using Filen's E2E encryption
 - **All file types** — PDFs, images, videos, documents — anything in the watched folder
 - **Flexible rules** — configure multiple sync rules, each with its own local folder and cloud destination
