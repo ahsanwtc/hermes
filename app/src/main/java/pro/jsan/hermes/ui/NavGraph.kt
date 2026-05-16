@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
@@ -18,8 +19,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import pro.jsan.hermes.ui.screens.*
-import pro.jsan.hermes.ui.theme.*
+import pro.jsan.hermes.ui.screens.*import pro.jsan.hermes.ui.theme.*
 
 @Composable
 fun NavGraph() {
@@ -38,6 +38,12 @@ fun NavGraph() {
                             onClick = { nav.navigate("home") { launchSingleTop = true } },
                             icon = { Icon(Icons.Default.Home, null) },
                             label = { Text("Home") }
+                        )
+                        NavigationBarItem(
+                            selected = route == "download",
+                            onClick = { nav.navigate("download") { launchSingleTop = true } },
+                            icon = { Icon(Icons.Default.Download, null) },
+                            label = { Text("Download") }
                         )
                         NavigationBarItem(
                             selected = route == "rules",
@@ -64,6 +70,7 @@ fun NavGraph() {
     ) { padding ->
         NavHost(nav, startDestination = "home", modifier = Modifier.padding(padding)) {
             composable("home") { HomeScreen() }
+            composable("download") { DownloadScreen() }
             composable("rules") {
                 RulesScreen(
                     onAddRule = { nav.navigate("rule_editor/-1") },
