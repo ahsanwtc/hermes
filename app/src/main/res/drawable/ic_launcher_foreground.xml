@@ -5,16 +5,16 @@
     android:viewportWidth="512"
     android:viewportHeight="512">
 
-    <!-- Wing / Lightning motif with gold gradient -->
+    <!-- Wing / Lightning motif with gold gradient, centered and scaled to ~50% -->
     <path
-        android:pathData="M120,256 L220,120 L400,120 L300,256 L440,256 L200,440 L260,256 Z">
+        android:pathData="M156,256 L206,180 L300,180 L250,256 L320,256 L230,360 L262,256 Z">
         <aapt:attr name="android:fillColor">
             <gradient
                 android:type="linear"
-                android:startX="0"
-                android:startY="0"
-                android:endX="512"
-                android:endY="512">
+                android:startX="156"
+                android:startY="180"
+                android:endX="320"
+                android:endY="360">
                 <item android:offset="0" android:color="#FFE792"/>
                 <item android:offset="1" android:color="#FFC107"/>
             </gradient>
@@ -23,7 +23,7 @@
 
     <!-- Subtle white accent -->
     <path
-        android:pathData="M180,180 L240,120 L300,120 L210,240 Z"
+        android:pathData="M178,210 L208,180 L250,180 L212,234 Z"
         android:fillColor="#FFFFFF"
-        android:fillAlpha="0.1"/>
+        android:fillAlpha="0.15"/>
 </vector>
