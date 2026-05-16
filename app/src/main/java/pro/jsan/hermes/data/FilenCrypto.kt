@@ -55,10 +55,9 @@ object FilenCrypto {
         return iv + encrypted
     }
 
-    fun sha512Hex(data: ByteArray): String {
-        return MessageDigest.getInstance("SHA-512").digest(data)
-            .joinToString("") { "%02x".format(it) }
-    }
+    fun sha512Hex(data: ByteArray): String =
+        MessageDigest.getInstance("SHA-512").digest(data)
+            .joinToString("") { String.format("%02x", it.toInt() and 0xFF) }
 
     /** Builds the file metadata JSON and encrypts it */
     fun encryptFileMetadata(
@@ -74,7 +73,7 @@ object FilenCrypto {
             put("size", size)
             put("mime", mimeType)
             put("key", fileKey)
-            put("lastModified", lastModified)
+            put("lastModified", lastModified / 1000) // seconds
         }.toString()
         return encryptMetadata(json, masterKey)
     }

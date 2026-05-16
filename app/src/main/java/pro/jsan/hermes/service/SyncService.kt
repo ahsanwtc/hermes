@@ -31,7 +31,8 @@ class SyncService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForeground(NOTIF_ID, buildNotification())
         scope.launch {
-            syncRuleDao.getEnabled().forEach { rule ->
+            val rules = syncRuleDao.getEnabled()
+            rules.forEach { rule ->
                 watchFolder(rule)
                 catchUpScan(rule)
             }
@@ -64,8 +65,12 @@ class SyncService : Service() {
 
     private suspend fun catchUpScan(rule: SyncRule) {
         val treeUri = Uri.parse(rule.localPath)
-        val dir = DocumentFile.fromTreeUri(this, treeUri) ?: return
-        dir.listFiles().forEach { file ->
+        val dir = DocumentFile.fromTreeUri(this, treeUri) ?: run {
+            android.util.Log.e("Hermes", "catchUpScan: DocumentFile null for ${rule.localPath}")
+            return
+        }
+        val files = dir.listFiles()
+        files.forEach { file ->
             if (!file.isFile) return@forEach
             val modifiedAt = file.lastModified()
             if (syncedFileDao.find(file.uri.toString(), modifiedAt) == null) {

@@ -33,17 +33,19 @@ class UploadWorker @AssistedInject constructor(
         // Skip if already synced at this modifiedAt
         if (syncedFileDao.find(uriStr, modifiedAt) != null) return Result.success()
 
-        // Read file bytes
-        val bytes = ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-            ?: return Result.retry()
-
         val name = androidx.documentfile.provider.DocumentFile.fromSingleUri(ctx, uri)
             ?.name ?: uri.lastPathSegment ?: "file"
         val mimeType = MimeTypeMap.getSingleton()
             .getMimeTypeFromExtension(name.substringAfterLast('.', ""))
             ?: "application/octet-stream"
 
-        // Resolve cloud directory and upload
+        // Read file bytes
+        val bytes = ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+            ?: run {
+                android.util.Log.e("Hermes", "UploadWorker: failed to open stream for $uriStr")
+                return Result.retry()
+            }
+
         val parentUuid = api.resolveCloudPath(cloudPath)
         val cloudFileId = api.uploadFile(name, parentUuid, bytes, mimeType, modifiedAt)
 
