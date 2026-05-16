@@ -44,6 +44,15 @@ Requires Android Studio Meerkat or later, JDK 21.
 
 Tagged releases (`v*`) automatically build and publish a signed APK via GitHub Actions.
 
+### Releasing a new version
+
+1. Update `versionCode` and `versionName` in `app/build.gradle.kts`
+2. Commit the change: `git commit -am "chore: bump version to x.y.z"`
+3. Tag the release: `git tag vx.y.z`
+4. Push: `git push && git push origin vx.y.z`
+
+GitHub Actions will build, sign, and publish the APK to GitHub Releases automatically.
+
 ## License
 
 MIT
