@@ -46,7 +46,11 @@ Tagged releases (`v*`) automatically build and publish a signed APK via GitHub A
 
 ### Releasing a new version
 
-1. Update `versionCode` and `versionName` in `app/build.gradle.kts`
+1. Increment `versionCode` by 1 and update `versionName` to match the tag in `app/build.gradle.kts`:
+   ```kotlin
+   versionCode = 2        // always +1 from previous release
+   versionName = "0.0.2"  // matches the git tag
+   ```
 2. Commit the change: `git commit -am "chore: bump version to x.y.z"`
 3. Tag the release: `git tag vx.y.z`
 4. Push: `git push && git push origin vx.y.z`
