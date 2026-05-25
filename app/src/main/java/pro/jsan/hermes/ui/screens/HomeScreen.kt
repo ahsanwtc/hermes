@@ -43,6 +43,9 @@ fun HomeScreen() {
     val filesToday by vm.filesToday.collectAsState()
     val recentFiles by vm.recentFiles.collectAsState()
     val fmt = remember { SimpleDateFormat("hh:mm a", Locale.getDefault()) }
+    val versionName = remember {
+        context.packageManager.getPackageInfo(context.packageName, 0).versionName
+    }
 
     LazyColumn(
         Modifier.fillMaxSize().padding(horizontal = 24.dp),
@@ -57,13 +60,16 @@ fun HomeScreen() {
                     Icon(Icons.Default.Bolt, null, tint = Primary, modifier = Modifier.size(28.dp))
                     Text("HERMES", fontSize = 28.sp, fontWeight = FontWeight.Black, color = OnSurface, letterSpacing = 2.sp)
                 }
-                Surface(color = if (serviceRunning) Primary.copy(alpha = 0.15f) else SurfaceContainerHigh, shape = RoundedCornerShape(9999.dp)) {
-                    Text(
-                        if (serviceRunning) "● Watching" else "○ Stopped",
-                        color = if (serviceRunning) Primary else OnSurfaceVariant,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Surface(color = if (serviceRunning) Primary.copy(alpha = 0.15f) else SurfaceContainerHigh, shape = RoundedCornerShape(9999.dp)) {
+                        Text(
+                            if (serviceRunning) "● Watching" else "○ Stopped",
+                            color = if (serviceRunning) Primary else OnSurfaceVariant,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        )
+                    }
+                    Text("v$versionName", color = OnSurfaceVariant, fontSize = 11.sp)
                 }
             }
         }
